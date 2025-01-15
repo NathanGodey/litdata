@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 import requests
 from packaging import version as packaging_version
+import os
 
 
 class WarningCache(set):
@@ -51,6 +52,9 @@ def _check_version_and_prompt_upgrade(curr_version: str) -> None:
     If not, warn the user to upgrade ``litdata``.
 
     """
+    if os.getenv("LITDATA_OFFLINE", 0):
+        return
+
     new_version = _get_newer_version(curr_version)
     if new_version:
         warning_cache.warn(

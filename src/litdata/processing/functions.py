@@ -527,7 +527,12 @@ class CopyInfo:
     new_filename: str
 
 
-def merge_datasets(input_dirs: List[str], output_dir: str, max_workers: Optional[int] = os.cpu_count()) -> None:
+def merge_datasets(
+    input_dirs: List[str], 
+    output_dir: str, 
+    max_workers: Optional[int] = os.cpu_count(),
+    mode: Optional[str] = "copy"
+    ) -> None:
     """Enables to merge multiple existing optimized datasets into a single optimized dataset.
 
     Args:
@@ -591,20 +596,25 @@ def merge_datasets(input_dirs: List[str], output_dir: str, max_workers: Optional
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures: List[concurrent.futures.Future] = []
         for copy_info in _tqdm(copy_infos):
-            future = executor.submit(_apply_copy, copy_info, resolved_output_dir)
+            future = executor.submit(_apply_copy, copy_info, resolved_output_dir, mode)
             futures.append(future)
 
     _save_index(index_json, resolved_output_dir)
 
 
-def _apply_copy(copy_info: CopyInfo, output_dir: Dir) -> None:
+def _apply_copy(copy_info: CopyInfo, output_dir: Dir, mode: str) -> None:
     if output_dir.url is None and copy_info.input_dir.url is None:
         assert copy_info.input_dir.path
         assert output_dir.path
         input_filepath = os.path.join(copy_info.input_dir.path, copy_info.old_filename)
         output_filepath = os.path.join(output_dir.path, copy_info.new_filename)
         os.makedirs(os.path.dirname(output_filepath), exist_ok=True)
-        shutil.copyfile(input_filepath, output_filepath)
+        if mode == "copy":
+            shutil.copyfile(input_filepath, output_filepath)
+        elif mode == "move":
+            shutil.move(input_filepath, output_filepath)
+        else:
+            raise ArgumentError("Argument mode needs to be one of ('copy', 'move').")
 
     elif output_dir.url and copy_info.input_dir.url:
         input_obj = parse.urlparse(os.path.join(copy_info.input_dir.url, copy_info.old_filename))

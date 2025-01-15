@@ -300,7 +300,7 @@ class BinaryReader:
 
             # inform the chunk has been completely consumed
             self._prepare_thread.delete([self._last_chunk_index])
-
+        
         if index.chunk_index != self._last_chunk_index:
             # Close the memory-mapped file for the last chunk index
             if isinstance(self._item_loader, TokensLoader) and self._last_chunk_index is not None:
