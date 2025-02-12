@@ -665,13 +665,16 @@ class StreamingDataLoader(DataLoader):
                 "latest_worker_idx": self._latest_worker_idx,
             }
 
-        num_samples_yieled = [0 for _ in range(len(list(self._num_samples_yielded_combined.values())[0]))]
+        list_yielded_combined = list(self._num_samples_yielded_combined.values())
+        num_splits = 0 if len(list_yielded_combined) == 0 else len(list_yielded_combined[0])
+        
+        num_samples_yielded = [0 for _ in range(num_splits)]
         for worker_idx in self._num_samples_yielded_combined:
-            for dataset_idx, samples_yieled in enumerate(self._num_samples_yielded_combined[worker_idx]):
-                num_samples_yieled[dataset_idx] += samples_yieled
+            for dataset_idx, samples_yielded in enumerate(self._num_samples_yielded_combined[worker_idx]):
+                num_samples_yielded[dataset_idx] += samples_yielded
 
         return {
-            "dataset": self.dataset.state_dict(self.num_workers, self.batch_size, num_samples_yieled),
+            "dataset": self.dataset.state_dict(self.num_workers, self.batch_size, num_samples_yielded),
             "current_epoch": self.current_epoch if self.restore else self.current_epoch - 1,
             "latest_worker_idx": self._latest_worker_idx,
             "num_samples_yielded": deepcopy(self._num_samples_yielded_combined),

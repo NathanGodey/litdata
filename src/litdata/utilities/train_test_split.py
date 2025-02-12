@@ -47,7 +47,8 @@ def train_test_split(
     # we need subsampled chunk filenames, original chunk file, and subsampled_roi
 
     dummy_streaming_dataset = deepcopy(streaming_dataset)
-    dummy_subsampled_chunk_filename = dummy_streaming_dataset.subsampled_files
+    dummy_subsampled_chunk_filename = set(dummy_streaming_dataset.subsampled_files)
+
     dummy_subsampled_roi = dummy_streaming_dataset.region_of_interest
     subsampled_chunks: List[Dict[str, Any]] = []
 
@@ -92,5 +93,6 @@ def train_test_split(
 
         subsampled_chunks = left_chunks
         dummy_subsampled_roi = left_roi
+
 
     return new_datasets
